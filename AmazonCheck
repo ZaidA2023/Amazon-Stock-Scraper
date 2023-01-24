@@ -16,6 +16,7 @@ os.environ['MOZ_HEADLESS'] = '1'
 driver = webdriver.Firefox()
 
 global pho
+global val
 layout = [
 [sg.Text('Enter Product Link')], [sg.InputText(size =(15, 1), key="OUTPUT")],
 [sg.Text('Enter your phone number (Only numbers)')], [sg.InputText(size =(15, 1), key="PHONE")],
