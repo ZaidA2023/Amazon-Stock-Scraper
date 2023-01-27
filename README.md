@@ -4,9 +4,10 @@
 
 ## Capabilities
 - Check a product page for stock every 10 seconds
-- Send a SMS message to phone number when restocked
+- Send a SMS message to phone number when restocked (or bought)
+- Automatically purchase re-stocked item
 - Run in background (no pesky selenium browser)
-- Works for any amazon product
+- Works for any amazon product (Choose product options before copying link)
 
 ## Set-up
 To be able to send a text message to your phone you need a Twilio account   
