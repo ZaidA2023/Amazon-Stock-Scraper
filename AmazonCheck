@@ -1,13 +1,33 @@
 import os
-from requests_html import HTMLSession
 import PySimpleGUI as sg
-from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from twilio.rest import Client
- 
+import time
+import json
+
+with open('Login.json', "a+") as out_file:
+    if(os.stat('Login.json').st_size==0):
+        layout = [
+        [sg.Text('Please enter your Amazon Username')], [sg.InputText(size =(15, 1), key="USER")],
+        [sg.Text('Please enter your Amazon Password')], [sg.InputText(size =(15, 1), key="PASS")],
+        [sg.Submit(), sg.Cancel()]
+        ]
+        window = sg.Window('Credentials window', layout)
+        event, value = window.read()
+        if event =="Submit":
+            username = value["USER"]
+            password = value["PASS"]
+            dict={"username":username, "password": password}
+            print(dict)
+        
+        window.close()
+        json.dump(dict, out_file)
+data = json.load(open("Login.json"))
+
+
 account_sid = os.environ['TWILIO_SID'] 
 auth_token = os.environ['TWILIO_TOKEN']
 client = Client(account_sid, auth_token)
@@ -15,32 +35,55 @@ client = Client(account_sid, auth_token)
 os.environ['MOZ_HEADLESS'] = '1'
 driver = webdriver.Firefox()
 
+
 global pho
 global val
+global boo
 layout = [
-[sg.Text('Enter Product Link')], [sg.InputText(size =(15, 1), key="OUTPUT")],
-[sg.Text('Enter your phone number (Only numbers)')], [sg.InputText(size =(15, 1), key="PHONE")],
-[sg.Submit()]
+[sg.Text('Enter Product Link')], [sg.InputText(size =(20, 1), key="OUTPUT")],
+[sg.Text('Enter your phone number (Only numbers)')], [sg.InputText(size =(20, 1), key="PHONE")],
+[sg.Button("Buy")],[sg.Button("Notify")]
 ]
 window = sg.Window('Link Entry Window', layout)
 event, value = window.read()
-if event =="Submit":
+if event =="Notify":
     val = value["OUTPUT"]
     pho = value["PHONE"]
-window.close()
+    boo = False
+    window.close()
+    
+if event =="Buy":
+    val = value["OUTPUT"]
+    pho = value["PHONE"]
+    boo = True
+    window.close()
 
 pho.replace(" ","")
 driver.get(val)
 try:
     element = WebDriverWait(driver,10).until(
-        EC.presence_of_element_located((By.ID, "comparison_add_to_cart_button2-announce"))
+        driver.find_element('xpath',"//input[@id='buy-now-button']")
     )
 finally:
-    message = client.messages.create(   
-        body='Your item is back in stock!',  
+    if boo: 
+        driver.find_element("xpath","//input[@id='buy-now-button']").click()
+        time.sleep(5)
+        driver.find_element("xpath", "//input[@id='ap_email']").send_keys(data["username"])
+        driver.find_element("xpath","//input[@id='continue']").click()
+        driver.find_element("xpath","//input[@id='ap_password']").send_keys(data["password"])
+        driver.find_element('xpath',"//input[@id='signInSubmit']").click()
+        driver.find_element('xpath',"//span[@id='submitOrderButtonId']//span[@class='a-button-inner']//input[@type='submit']").click()
+        message = client.messages.create(   
+        body='Your item has been purchased!'+"\n"+val,  
         from_='+13524969164',  
         to='+1'+pho
     ) 
-    print(message.sid)
-    driver.quit()
+    if boo == False:
+        message = client.messages.create(   
+            body='Your item is back in stock!'+"\n"+val,  
+            from_='+13524969164',  
+            to='+1'+pho
+        ) 
+        print(message.sid)
+
 
