@@ -8,26 +8,6 @@ from twilio.rest import Client
 import time
 import json
 
-with open('Login.json', "a+") as out_file:
-    if(os.stat('Login.json').st_size==0):
-        layout = [
-        [sg.Text('Please enter your Amazon Username')], [sg.InputText(size =(15, 1), key="USER")],
-        [sg.Text('Please enter your Amazon Password')], [sg.InputText(size =(15, 1), key="PASS")],
-        [sg.Submit(), sg.Cancel()]
-        ]
-        window = sg.Window('Credentials window', layout)
-        event, value = window.read()
-        if event =="Submit":
-            username = value["USER"]
-            password = value["PASS"]
-            dict={"username":username, "password": password}
-            print(dict)
-        
-        window.close()
-        json.dump(dict, out_file)
-data = json.load(open("Login.json"))
-
-
 account_sid = os.environ['TWILIO_SID'] 
 auth_token = os.environ['TWILIO_TOKEN']
 client = Client(account_sid, auth_token)
@@ -53,6 +33,24 @@ if event =="Notify":
     window.close()
     
 if event =="Buy":
+    with open('Login.json', "a+") as out_file:
+        if(os.stat('Login.json').st_size==0):
+            layout = [
+            [sg.Text('Please enter your Amazon Username')], [sg.InputText(size =(15, 1), key="USER")],
+            [sg.Text('Please enter your Amazon Password')], [sg.InputText(size =(15, 1), key="PASS")],
+            [sg.Submit(), sg.Cancel()]
+            ]
+            window = sg.Window('Credentials window', layout)
+            event, value = window.read()
+            if event =="Submit":
+                username = value["USER"]
+                password = value["PASS"]
+                dict={"username":username, "password": password}
+                print(dict)
+            
+            window.close()
+            json.dump(dict, out_file)
+    data = json.load(open("Login.json"))
     val = value["OUTPUT"]
     pho = value["PHONE"]
     boo = True
